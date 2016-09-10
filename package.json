@@ -4,7 +4,9 @@
   "description": "Electron application for mud",
   "main": "./backend/main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "posx": "electron-packager ./ --platform=mas --arch=x64",
+    "pwin64": "electron-packager ./ --platform=win32 --arch=x64"
   },
   "repository": {
     "type": "git",
@@ -23,10 +25,13 @@
   },
   "homepage": "https://github.com/Teddy-Zhu/electronic-mud",
   "devDependencies": {
-    "electron": "^1.3.4"
+    "electron": "^1.3.4",
+    "electron-builder": "^6.6.1",
+    "electron-packager": "^8.0.0"
   },
   "dependencies": {
     "ansi_up": "^1.3.0",
+    "encoding": "^0.1.12",
     "sqlite3": "^3.1.4"
   }
 }
