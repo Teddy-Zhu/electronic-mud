@@ -19,10 +19,8 @@ const sqlite3 = require('sqlite3');
 const net = require('net');
 const ansi_up = require('ansi_up');
 const iconv = require('iconv-lite');
-
 let mainWindow;
 let connect;
-
 function createWindow() {
     // Create the browser window.
     mainWindow = new BrowserWindow({
