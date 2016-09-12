@@ -5,7 +5,7 @@ const {
     ipcMain
     } = electron;
 let config = {
-    dbname: 'mud.sqlite3',
+    dbname: 'mud',
     defaultEncoding: 'GBK',
     host: '112.126.83.105',
     port: 5555,
@@ -15,7 +15,6 @@ let config = {
 };
 const fs = require('fs');
 const util = require('util');
-const sqlite3 = require('sqlite3');
 const net = require('net');
 const ansi_up = require('ansi_up');
 const iconv = require('iconv-lite');
@@ -89,16 +88,6 @@ function connectServer() {
 
         updateConect('断开与服务器的连接');
     });
-}
-function initDateBase() {
-    fs.exists(config.dbname, function (exists) {
-        if (exists) {
-            // serve file
-        } else {
-            // mongodb
-        }
-    });
-
 }
 
 function bindMessage() {
