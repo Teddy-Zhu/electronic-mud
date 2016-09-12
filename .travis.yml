@@ -7,8 +7,8 @@ before_script:
   - npm install -g electron-packager
 
 script:
-  - npm posx
-  - npm pwin64
+  - electron-packager ./ --platform=mas --arch=x64
+  - electron-packager ./ --platform=win32 --arch=x64
 
 branches:
   only:
