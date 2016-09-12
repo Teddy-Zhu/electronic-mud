@@ -1,4 +1,4 @@
-# electronic-mud
+# electronic-mud [![Build Status](https://travis-ci.org/Teddy-Zhu/electronic-mud.svg?branch=master)](https://travis-ci.org/Teddy-Zhu/electronic-mud)
 
 ##How To Use
 
