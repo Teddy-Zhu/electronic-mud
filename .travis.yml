@@ -1,0 +1,15 @@
+
+language: node_js
+node_js:
+  - 5.1.0
+before_script:
+  - npm install -g electron-builder
+  - npm install -g electron-packager
+
+script:
+  - npm posx
+  - npm pwin64
+
+branches:
+  only:
+    - master
