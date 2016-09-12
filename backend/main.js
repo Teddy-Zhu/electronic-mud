@@ -10,14 +10,15 @@ let config = {
     host: '112.126.83.105',
     port: 5555,
     enter: '\n',
-    macroprefix: '!'
+    macroprefix: '!',
+    innerCMD: {'exit': 'exit'}
 };
 const fs = require('fs');
 const util = require('util');
-const encoding = require('encoding');
 const sqlite3 = require('sqlite3');
 const net = require('net');
 const ansi_up = require('ansi_up');
+const iconv = require('iconv-lite');
 
 let mainWindow;
 let connect;
@@ -31,7 +32,7 @@ function createWindow() {
     });
 
     // and load the index.html of the app.
-    mainWindow.loadURL(`file://${__dirname}/../index.html`)
+    mainWindow.loadURL(`file://${__dirname}/../index.html`);
     mainWindow.webContents.on('connect-server', function () {
         connectServer();
     });
@@ -75,28 +76,20 @@ function connectServer() {
         port: config.port,
         host: config.host
     }, function () {
-        mainWindow.webContents.send("content-update", {
-            result: true,
-            data: '已连接到[' + config.host + ':' + config.port + ']服务器！<br>'
-        });
+        updateConect('<br><span>已连接到[' + config.host + ':' + config.port + ']服务器！</span><br>');
     });
 
     connect.on('data', function (data) {
-        var result = encoding.convert(data, "utf-8", config.defaultEncoding).toString();
+        var result = iconv.decode(data, config.defaultEncoding).toString();
 
         result = ansi_up.ansi_to_html(result.toString());
 
-        mainWindow.webContents.send('content-update', {
-            result: true,
-            data: result
-        });
+        updateConect(result);
     });
     connect.on('end', function () {
         connect = null;
-        mainWindow.webContents.send('content-update', {
-            result: true,
-            data: '断开与服务器的连接'
-        });
+
+        updateConect('断开与服务器的连接');
     });
 }
 function initDateBase() {
@@ -112,13 +105,9 @@ function initDateBase() {
 
 function bindMessage() {
     ipcMain.on("send-server-commad", function (event, arg) {
-        if (connect) {
             if (arg && arg.result) {
-                let encode = encoding.convert(arg.data + config.enter, config.defaultEncoding,"UTF-8");
-                console.log("ASD"+encode.toString());
-                connect.write(encode.toString() , config.defaultEncoding);
+                connectSendCMD(arg.data);
             }
-        }
     });
     ipcMain.on("disconnect-server", function (event, arg) {
         if (connect) {
@@ -128,10 +117,45 @@ function bindMessage() {
         }
     });
 
-    connectServer();
+}
+
+function connectSendCMD(data) {
+    if (data.substr(0, config.macroprefix.length) == config.macroprefix) {
+        resloveMacro(data);
+    } else {
+        commonCMD(data);
+    }
+}
+
+function commonCMD(cmd){
+    if(!connect) return;
+    updateConect('<br><span>>>' + cmd + '</span><br>');
+    let encode = iconv.encode(cmd + config.enter, config.defaultEncoding);
+    connect.write(encode);
+}
+function resloveMacro(cmd) {
+    var parseCMD = cmd.substr(1);
+    var matchCMD = config.innerCMD[cmd];
+    parseCMD = matchCMD ? matchCMD : parseCMD;
+    switch (parseCMD) {
+        case 'cnt':
+        {
+            updateConect('<br><span>>>connect server</span><br>');
+            connectServer();
+            break;
+        }
+        default:
+        {
+            commonCMD(parseCMD);
+            break;
+        }
+    }
 }
 
 
-function resloveMacro(cmd){
-
+function updateConect(contect){
+    mainWindow.webContents.send("content-update", {
+        result: true,
+        data: contect
+    });
 }

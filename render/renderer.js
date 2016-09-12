@@ -6,11 +6,16 @@ const {
     ipcRenderer
     } = require('electron');
 ipcRenderer.on('content-update', function (event, arg) {
-    console.log('content-update-recv')
-    console.log(arg)
     if (arg && arg.result) {
         var that = document.getElementById('content');
         that.appendHTML(arg.data);
+        that.scrollTop = that.scrollHeight;
+    }
+});
+ipcRenderer.on('content-replace', function (event, arg) {
+    if (arg && arg.result) {
+        var that = document.getElementById('content');
+        that.innerHTML = arg.data;
         that.scrollTop = that.scrollHeight;
     }
 });
