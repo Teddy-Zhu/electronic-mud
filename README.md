@@ -2,11 +2,11 @@
 
 ##How To Use
 
-windows
-    download electronic-mud.exe
 os x  
     download electronic-mud.app
-
+other
+    you can download source and build your self
+    
 ##How to run
 ```bash
 # Clone this repository

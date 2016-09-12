@@ -8,7 +8,6 @@ before_script:
 
 script:
   - electron-packager ./ --platform=mas --arch=x64
-  - electron-packager ./ --platform=win32 --arch=x64
 
 branches:
   only:
