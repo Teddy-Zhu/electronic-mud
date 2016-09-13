@@ -21,7 +21,7 @@ const net = require('net');
 const ansi_up = require('ansi_up');
 const iconv = require('iconv-lite');
 const low = require('lowdb');
-const db = low("db.json");
+const db = low(app.getPath('userData') + "/db.json");
 let mainWindow;
 let connect;
 function createWindow() {
@@ -36,7 +36,7 @@ function createWindow() {
 
     // and load the index.html of the app.
     initDB();
-
+    console.log(app.getPath('userData'));
     mainWindow.loadURL(`file://${__dirname}/../index.html`);
     mainWindow.webContents.on('connect-server', function () {
         connectServer();
@@ -94,13 +94,13 @@ app.on('activate', function () {
 });
 
 function initDB() {
-    var val  = db.get('config').value();
+    var val = db.get('config').value();
     if (val) {
         console.log('exist');
         config = val;
     } else {
         console.log('new');
-        db.setState({'config':config});
+        db.setState({'config': config});
     }
 }
 function disconnectServer() {
@@ -180,7 +180,7 @@ function resloveMacro(cmd) {
         {
             var key = parseCMDArray[1];
             var value = parseCMDArray[2];
-            db.get('config').set(key,value).value();
+            db.get('config').set(key, value).value();
             updateConect(config.customOut.replace('%s', 'db set key :' + key + ' value :' + value));
             break;
         }
