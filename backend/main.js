@@ -1,18 +1,20 @@
-const electron = require('electron')
-const {
-    Menu,
-    app,
-    BrowserWindow,
-    ipcMain
-    } = electron;
+const electron = require('electron');
+const {Menu,app,BrowserWindow,ipcMain} = electron;
 let config = {
     defaultEncoding: 'GBK',
     host: '112.126.83.105',
     port: 5555,
     enter: '\n',
     macroprefix: '!',
-    innerCMD: {'exit': 'exit'},
-    customOut: '<br><span>%s</span><br>'
+    innerCMD: {
+        'exit': 'exit',
+        'cnt': '!run connect',
+        'rcnt': '!run removeConnect',
+        'setdb': '!run setdb',
+        'set': '!run set'
+    },
+    customOut: '<br><span>%s</span><br>',
+    version: '1.2'
 };
 
 const fs = require('fs');
@@ -23,24 +25,47 @@ const iconv = require('iconv-lite');
 const low = require('lowdb');
 const db = low(app.getPath('userData') + "/db.json");
 let mainWindow;
-let connect;
+let connectList = {
+    tab1: undefined
+};
+let innerfunc = {
+    close: function () {
+        app.quit();
+    },
+    connect: function (name, host, port) {
+        connectServer(name, host, port);
+    },
+    removeConnect: function (name) {
+        disconnectServer(name);
+    },
+    setdb: function (key, value) {
+        db.get('config').set(key, value).value();
+        updateConect(name, config.customOut.replace('%s', 'db set key :' + key + ' value :' + value));
+
+    },
+    set: function (key, value) {
+        if (config.hasOwnProperty(key)) {
+            updateConect(name, config.customOut.replace('%s', 'set key : ' + key + ' value :' + value));
+            config[key] = value;
+        }
+    }
+};
 function createWindow() {
     // Create the browser window.
     mainWindow = new BrowserWindow({
         width: 800,
         //resizable: false,
-        height: 600,
+        height: 630,
         "min-width": 800,
-        "min-height": 600
+        "min-height": 630
     });
 
     // and load the index.html of the app.
     initDB();
+    mainWindow.webContents.openDevTools();
     console.log(app.getPath('userData'));
     mainWindow.loadURL(`file://${__dirname}/../index.html`);
-    mainWindow.webContents.on('connect-server', function () {
-        connectServer();
-    });
+
     mainWindow.webContents.on('dom-ready', function () {
         mainWindow.webContents.send('dom-ready-event');
         bindMessage();
@@ -96,115 +121,122 @@ app.on('activate', function () {
 function initDB() {
     var val = db.get('config').value();
     if (val) {
-        console.log('exist');
-        config = val;
+        if (val['version'] != config.version) {
+            console.log('update');
+            db.setState({config: config});
+        } else {
+            config = val;
+        }
     } else {
         console.log('new');
         db.setState({'config': config});
     }
 }
-function disconnectServer() {
-    if (connect) {
-        connect.end();
-        connect = null;
+function disconnectServer(name) {
+    if (connectList[name]) {
+        connectList[name].end();
     }
 }
 
-function connectServer() {
-    disconnectServer();
-    connect = net.connect({
-        port: config.port,
-        host: config.host
+function connectServer(name, host, port) {
+    host = host ? host : config.host;
+    port = port ? port : config.port;
+    disconnectServer(name);
+    connectList[name] = net.connect({
+        port: port,
+        host: host
     }, function () {
-        updateConect('<br><span>已连接到[' + config.host + ':' + config.port + ']服务器！</span><br>');
+        updateConect(name, '<br><span>已连接到[' + host + ':' + port + ']服务器！</span><br>');
     });
 
-    connect.on('data', function (data) {
+    connectList[name].on('data', function (data) {
         var result = iconv.decode(data, config.defaultEncoding).toString();
-
         result = ansi_up.ansi_to_html(result.toString());
 
-        updateConect(result);
+        updateConect(name, result);
     });
-    connect.on('end', function () {
-        connect = null;
-
-        updateConect('断开与服务器的连接');
+    connectList[name].on('end', function () {
+        console.log('end ' + name);
+        connectList[name] = null;
+        delete  connectList[name];
+        updateConect(name, '断开与服务器的连接');
     });
 }
 
 function bindMessage() {
     ipcMain.on("send-server-commad", function (event, arg) {
         if (arg && arg.result) {
-            connectSendCMD(arg.data);
+            connectSendCMD(arg.data.name, arg.data.content);
         }
     });
     ipcMain.on("disconnect-server", function (event, arg) {
-        if (connect) {
-            if (arg && arg.result) {
-                connect.end();
-            }
+
+        if (arg && arg.result && connectList[arg.data.name]) {
+            connectList[arg.data.name].end();
         }
+
     });
 
 }
 
-function connectSendCMD(data) {
+function connectSendCMD(name, data) {
     if (data.substr(0, config.macroprefix.length) == config.macroprefix) {
-        resloveMacro(data);
+        resloveMacro(name, data);
     } else {
-        commonCMD(data);
+        commonCMD(name, data);
     }
 }
 
-function commonCMD(cmd) {
-    if (!connect) return;
-    updateConect('<br><span>>>' + cmd + '</span><br>');
+function commonCMD(name, cmd) {
+    if (!connectList[name]) return;
+    updateConect(name, '<br><span>>>' + cmd + '</span><br>');
     let encode = iconv.encode(cmd + config.enter, config.defaultEncoding);
-    connect.write(encode);
+    connectList[name].write(encode);
 }
-function resloveMacro(cmd) {
+function resloveMacro(name, cmd) {
     var parseCMD = cmd.substr(1);
     var parseCMDArray = parseCMD.split(/\s+/);
+    //解析快捷命令
     var matchCMD = config.innerCMD[parseCMDArray[0]];
     var rcmd = matchCMD ? matchCMD : parseCMDArray[0];
     parseCMDArray[0] = rcmd;
     switch (rcmd) {
-        case 'cnt':
+        case 'run':
         {
-            updateConect('<br><span>>>connect server</span><br>');
-            connectServer();
-            break;
-        }
-        case 'setdb':
-        {
-            var key = parseCMDArray[1];
-            var value = parseCMDArray[2];
-            db.get('config').set(key, value).value();
-            updateConect(config.customOut.replace('%s', 'db set key :' + key + ' value :' + value));
-            break;
-        }
-        case 'set':
-        {
-            var key = parseCMDArray[1];
-            var value = parseCMDArray[2];
-            if (config.hasOwnProperty(key)) {
-                updateConect(config.customOut.replace('%s', 'set key : ' + key + ' value :' + value));
-                config[key] = value;
+            var func = parseCMDArray[1];
+            if (func && innerfunc[func]) {
+
+                parseCMDArray = parseCMDArray.slice(2);
+                if (getFnParameters(innerfunc[func])[0] == 'name') {
+                    console.log('has name');
+                    parseCMDArray.splice(0, 0, name);
+                }
+                console.log('cmd :[' + parseCMDArray.join(' ') + ']');
+                innerfunc[func].apply(this, parseCMDArray);
             }
+            break;
         }
         default:
         {
-            commonCMD.apply(this, parseCMDArray);
+            connectSendCMD(name, parseCMDArray.join(' '));
             break;
         }
     }
 }
 
 
-function updateConect(contect) {
+function updateConect(name, content) {
     mainWindow.webContents.send("content-update", {
         result: true,
-        data: contect
+        data: {
+            name: name,
+            content: content
+        }
     });
+}
+
+function getFnParameters(func) {
+    var funcString = func.toString();
+    console.log('function string : ' + funcString);
+    return funcString.substring(funcString.indexOf('(') + 1, funcString.indexOf(')')).split(/\s*,\s*/);
 }

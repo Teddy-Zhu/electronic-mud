@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <title>Mud Client</title>
     <style>
-        #content {
+        .cmd_content {
             width: 100%;
             height: 500px;
             font-family: monospace;
@@ -17,24 +17,151 @@
             color: #eeeeee;
             padding: 5px;
         }
-        #cmd{
+
+        .cmd {
             margin-top: 10px;
             resize: none;
             width: 100%;
             height: 1.2rem;
             line-height: 1.2rem;
         }
-        body{
+
+        body {
             overflow: hidden;
             margin: 0;
+        }
+
+        #tab_bar {
+            width: 98%;
+            height: 20px;
+            float: left;
+        }
+
+        #tab_bar.has_reduce {
+            width: 96%;
+        }
+
+        #tab_bar ul {
+            padding: 0px;
+            margin: 0px;
+            height: 20px;
+            text-align: center;
+        }
+
+        #tab_bar li {
+            list-style-type: none;
+            float: left;
+            width: 100%;
+            height: 20px;
+            cursor: pointer;
+            background-color: gray;
+        }
+
+        .tab_css {
+            width: 100%;
+            height: 200px;
+            background-color: orange;
+            display: none;
+            float: left;
+        }
+
+        #tab_content_all {
+            width: 100%;
+        }
+
+        .add_button, .red_button {
+            width: 2%;
+            cursor: pointer;
+            float: right;
+            text-align: center;
+            vertical-align: middle;
+            height: 20px;
+            background: #8fd3ff;
+        }
+
+        #modal-overlay {
+            visibility: hidden;
+            position: absolute;
+            left: 0px;
+            top: 0px;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            z-index: 1000;
+            background-color: rgba(51, 51, 51, 0.5);
+        }
+
+        button.ok, button.cancel {
+            width: 55px;
+        }
+
+        .modal-data {
+            width: 300px;
+            margin: 0 auto;
+            background-color: #fff;
+            border-bottom-right-radius: 0.4rem;
+            border-bottom-left-radius: 0.4rem;
+            padding: 15px 15px 7px;
+            text-align: center;
+        }
+
+        .td_left {
+            text-align: left;
+        }
+
+        .model-table {
+            width: 100%;
+        }
+
+        .bottom_tool{
+            position: absolute;
+            bottom: 10px;
+            margin-left: 10px;
         }
     </style>
 </head>
 
 <body>
-    <span id="content">
-    </span>
-    <input id="cmd" type="text" />
+<div id="tab_bar">
+    <ul>
+        <li id="tab1" style="background-color: orange">
+            tab1
+        </li>
+    </ul>
+</div>
+<div id="add" class="add_button">+</div>
+<div id="reduce" class="red_button" style="display: none">-</div>
+<div id="tab_content_all">
+    <div class="tab_css" id="tab1_content" style="display: block">
+        <div>
+            <span class="cmd_content"></span>
+            <input class="cmd" type="text"/>
+        </div>
+    </div>
+</div>
+<div class="bottom_tool">
+    <button id="quickLink">Quick Link</button>
+</div>
+
+<div id="modal-overlay">
+    <div class="modal-data">
+        <table class="model-table">
+            <tr>
+                <td class="td_left">连接地址:</td>
+                <td><input id="host" type="text"></td>
+            </tr>
+            <tr>
+                <td class="td_left">端口(默认:23):</td>
+                <td><input id="port" type="text"></td>
+            </tr>
+        </table>
+        <div class="modal-button">
+            <button id="ok" class="ok">确认</button>
+            <button id="cancel" class="cancel">取消</button>
+        </div>
+    </div>
+</div>
+
 </body>
 
 <script>
