@@ -62,8 +62,8 @@ function createWindow() {
 
     // and load the index.html of the app.
     initDB();
-    mainWindow.webContents.openDevTools();
-    console.log(app.getPath('userData'));
+    //mainWindow.webContents.openDevTools();
+    //console.log(app.getPath('userData'));
     mainWindow.loadURL(`file://${__dirname}/../index.html`);
 
     mainWindow.webContents.on('dom-ready', function () {
