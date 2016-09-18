@@ -62,7 +62,7 @@ function createWindow() {
 
     // and load the index.html of the app.
     initDB();
-    //mainWindow.webContents.openDevTools();
+    mainWindow.webContents.openDevTools();
     //console.log(app.getPath('userData'));
     mainWindow.loadURL(`file://${__dirname}/../index.html`);
 
@@ -205,7 +205,6 @@ function resloveMacro(name, cmd) {
         {
             var func = parseCMDArray[1];
             if (func && innerfunc[func]) {
-
                 parseCMDArray = parseCMDArray.slice(2);
                 if (getFnParameters(innerfunc[func])[0] == 'name') {
                     console.log('has name');
