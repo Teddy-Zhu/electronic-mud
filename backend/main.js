@@ -1,5 +1,5 @@
 const electron = require('electron');
-const {Menu,app,BrowserWindow,ipcMain} = electron;
+const {Menu, app, BrowserWindow, ipcMain} = electron;
 let config = {
     defaultEncoding: 'GBK',
     host: '112.126.83.105',
@@ -50,6 +50,7 @@ let innerfunc = {
         }
     }
 };
+
 function createWindow() {
     // Create the browser window.
     mainWindow = new BrowserWindow({
@@ -132,6 +133,7 @@ function initDB() {
         db.setState({'config': config});
     }
 }
+
 function disconnectServer(name) {
     if (connectList[name]) {
         connectList[name].end();
@@ -165,6 +167,8 @@ function connectServer(name, host, port) {
 
 function bindMessage() {
     ipcMain.on("send-server-commad", function (event, arg) {
+        console.log("send-server-commad")
+        console.log(arg);
         if (arg && arg.result) {
             connectSendCMD(arg.data.name, arg.data.content);
         }
@@ -193,30 +197,30 @@ function commonCMD(name, cmd) {
     let encode = iconv.encode(cmd + config.enter, config.defaultEncoding);
     connectList[name].write(encode);
 }
+
 function resloveMacro(name, cmd) {
     var parseCMD = cmd.substr(1);
     var parseCMDArray = parseCMD.split(/\s+/);
+
     //解析快捷命令
     var matchCMD = config.innerCMD[parseCMDArray[0]];
+
     var rcmd = matchCMD ? matchCMD : parseCMDArray[0];
     parseCMDArray[0] = rcmd;
     switch (rcmd) {
-        case 'run':
-        {
+        case 'run': {
             var func = parseCMDArray[1];
             if (func && innerfunc[func]) {
                 parseCMDArray = parseCMDArray.slice(2);
-                if (getFnParameters(innerfunc[func])[0] == 'name') {
-                    console.log('has name');
-                    parseCMDArray.splice(0, 0, name);
+                if (getFnParameters(innerfunc[func])[0] != 'name') {
+                    console.log('has name should remove');
+                    parseCMDArray.splice(0, 1);
                 }
-                console.log('cmd :[' + parseCMDArray.join(' ') + ']');
                 innerfunc[func].apply(this, parseCMDArray);
             }
             break;
         }
-        default:
-        {
+        default: {
             connectSendCMD(name, parseCMDArray.join(' '));
             break;
         }
@@ -236,6 +240,5 @@ function updateConect(name, content) {
 
 function getFnParameters(func) {
     var funcString = func.toString();
-    console.log('function string : ' + funcString);
     return funcString.substring(funcString.indexOf('(') + 1, funcString.indexOf(')')).split(/\s*,\s*/);
 }
