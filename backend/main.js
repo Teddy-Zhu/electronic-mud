@@ -141,6 +141,7 @@ function disconnectServer(name) {
 }
 
 function connectServer(name, host, port) {
+    console.log(name);
     host = host ? host : config.host;
     port = port ? port : config.port;
     disconnectServer(name);
@@ -184,6 +185,7 @@ function bindMessage() {
 }
 
 function connectSendCMD(name, data) {
+    console.log(name);
     if (data.substr(0, config.macroprefix.length) == config.macroprefix) {
         resloveMacro(name, data);
     } else {
@@ -212,15 +214,16 @@ function resloveMacro(name, cmd) {
             var func = parseCMDArray[1];
             if (func && innerfunc[func]) {
                 parseCMDArray = parseCMDArray.slice(2);
-                if (getFnParameters(innerfunc[func])[0] != 'name') {
+                if (getFnParameters(innerfunc[func])[0] == 'name') {
                     console.log('has name should remove');
-                    parseCMDArray.splice(0, 1);
+                    parseCMDArray.splice(0, 0, name);
                 }
                 innerfunc[func].apply(this, parseCMDArray);
             }
             break;
         }
         default: {
+            console.log("resolve ", parseCMDArray.join(' '));
             connectSendCMD(name, parseCMDArray.join(' '));
             break;
         }

@@ -108,7 +108,7 @@ ipcRenderer.on('dom-ready-event', function () {
             result: true,
             data: {
                 name: 'tab' + tabIndex,
-                content: "!run connect tab" + tabIndex + " " + host + " " + port
+                content: "!run connect " + host + " " + port
             }
         });
         hideModel();
@@ -139,7 +139,7 @@ function reduceTab() {
         result: true,
         data: {
             name: 'tab' + tabIndex,
-            content: "!rcnt tab" + tabIndex
+            content: "!rcnt"
         }
     });
     var tab = DomById('tab' + tabIndex);
