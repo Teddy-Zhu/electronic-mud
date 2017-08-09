@@ -1,6 +1,6 @@
 {
   "name": "electronic-mud",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Electron application for mud",
   "main": "./backend/main.js",
   "scripts": {
